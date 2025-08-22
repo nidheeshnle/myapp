@@ -1,41 +1,17 @@
-name: Deploy to EC2
+name: Test EC2 SSH
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch: # allows manual trigger from GitHub UI
 
 jobs:
-  deploy:
+  ssh-test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: SSH into EC2 and Deploy
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          # Update the system and install Docker if not installed
-          sudo apt update
-          sudo apt install -y docker.io git
-
-          # Clone the repository (or pull latest changes)
-          if [ ! -d "app" ]; then
-            git clone https://github.com/nidheeshnle/myapp.git
-          else
-            cd myapp
-            git pull origin main
-          fi
-
-          cd app
-
-          # Build and run the Docker container
-          docker stop node-app || true
-          docker rm node-app || true
-          docker build -t node-app .
-          docker run -d -p 80:3000 --name node-app node-app
+      - name: Setup SSH
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo '✅ Connected to EC2 successfully!' && uname -a"
