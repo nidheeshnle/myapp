@@ -1,4 +1,4 @@
-name: Test EC2 SSH-test
+name: Test EC2 SSH
 
 on:
   workflow_dispatch: # allows manual trigger from GitHub UI
