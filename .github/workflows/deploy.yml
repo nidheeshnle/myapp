@@ -20,21 +20,27 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Update the system and install Docker if not installed
-          sudo apt update
+          # Update system and install dependencies
+          sudo apt update -y
           sudo apt install -y docker.io git
 
-          # Clone the repository (or pull latest changes)
-          if [ ! -d "app" ]; then
+          # Navigate to home directory
+          cd ~
+
+          # Clone or update repository
+          if [ ! -d "myapp" ]; then
             git clone https://github.com/nidheeshnle/myapp.git
           else
             cd myapp
+            git reset --hard
             git pull origin main
+            cd ..
           fi
 
-          cd app
+          # Move into repo
+          cd myapp
 
-          # Build and run the Docker container
+          # Build and run Docker container
           docker stop node-app || true
           docker rm node-app || true
           docker build -t node-app .
